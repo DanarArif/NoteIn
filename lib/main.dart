@@ -59,7 +59,7 @@ class _MainPageState extends State<MainPage> {
       case NavigationItem.workflow:
         return ReminderPage();
       case NavigationItem.updates:
-        return UpdatesPage();
+        return CalendarPage();
       case NavigationItem.plugins:
         return LoginPage();
       case NavigationItem.notifications:
