@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
 import '../widget/navigation_drawer_widget.dart';
+
+
 
 class ReminderPage extends StatefulWidget {
   @override
@@ -8,33 +10,16 @@ class ReminderPage extends StatefulWidget {
 }
 
 class _ReminderPageState extends State<ReminderPage> {
-  TimeOfDay _selectedTime = TimeOfDay.now();
-  DateTime _selectedDate = DateTime.now();
+  List<String> _reminderTasks = []; // Daftar reminder task
+  DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
 
-  Future<void> _selectTime(BuildContext context) async {
-    final TimeOfDay? pickedTime = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime,
-    );
-    if (pickedTime != null && pickedTime != _selectedTime) {
-      setState(() {
-        _selectedTime = pickedTime;
-      });
-    }
-  }
+  TextEditingController _taskController = TextEditingController();
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-    if (pickedDate != null && pickedDate != _selectedDate) {
-      setState(() {
-        _selectedDate = pickedDate;
-      });
-    }
+  @override
+  void dispose() {
+    _taskController.dispose();
+    super.dispose();
   }
 
   @override
@@ -42,60 +27,96 @@ class _ReminderPageState extends State<ReminderPage> {
     return Scaffold(
       drawer: NavigationDrawerWidget(),
       appBar: AppBar(
-        title: Text('Reminder Task'),
+        title: Text('Reminder'),
         centerTitle: true,
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.blue,
       ),
-      body: Padding(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Write your task reminder here',
-                border: OutlineInputBorder(),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Reminder Tasks',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              maxLines: null,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                // TODO: Handle saving the task reminder
-              },
-              child: Text('Save Task Reminder'),
-            ),
-            SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _selectTime(context),
-                    child: Text('Select Time'),
-                  ),
+              SizedBox(height: 16),
+              // Menampilkan daftar reminder task
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: _reminderTasks.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(_reminderTasks[index]),
+                  );
+                },
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Add Reminder Task',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
-                SizedBox(width: 20),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _selectDate(context),
-                    child: Text('Select Date'),
-                  ),
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: _taskController,
+                decoration: InputDecoration(
+                  labelText: 'Task',
                 ),
-              ],
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Selected Time: ${_selectedTime.format(context)}',
-              style: TextStyle(fontSize: 16),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Selected Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-              style: TextStyle(fontSize: 16),
-            ),
-          ],
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _showDateTimePicker,
+                child: Text('Set Date and Time'),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  if (_taskController.text.isNotEmpty && _selectedDate != null && _selectedTime != null) {
+                    setState(() {
+                      String taskWithDateTime = '${_taskController.text} - ${DateFormat('dd/MM/yyyy').format(_selectedDate!)} ${_selectedTime!.format(context)}';
+                      _reminderTasks.add(taskWithDateTime);
+                      _taskController.clear();
+                      _selectedDate = null;
+                      _selectedTime = null;
+                    });
+                  }
+                },
+                child: Text('Add Task'),
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  void _showDateTimePicker() async {
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2025),
+    );
+
+    if (selectedDate != null) {
+      final selectedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+
+      if (selectedTime != null) {
+        setState(() {
+          _selectedDate = selectedDate;
+          _selectedTime = selectedTime;
+        });
+      }
+    }
   }
 }

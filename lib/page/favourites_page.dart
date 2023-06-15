@@ -121,7 +121,7 @@ class _NotePageState extends State<NotePage> {
         _notes.add(
           Note(
             title: title,
-            content: content,
+            content: content,id: 1,
           ),
         );
         _filterNotes(_searchController.text); // Re-apply the filter
